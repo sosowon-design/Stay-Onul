@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>온을 (溫乙) - 아임웹 코드 위젯 통합본</title>
+
+  <!-- Google Fonts import for seamless editorial typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS Play CDN for premium rapid responsive utility classes -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Alpine.js CDN for robust state-engine in a single file -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- Scoped custom styles to avoid conflicts with Imweb template elements -->
+  <style>
+    /* Scoped container to prevent any style bleed */
+    #onul-widget {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: #FAF7F2;
+      color: #2C2621;
+    }
+    
+    .serif-font {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+
+    /* Scrollbar Styling for Room Modals */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(230, 220, 208, 0.3);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #9E8D7A;
+      border-radius: 2px;
+    }
+
+    /* Smooth transitions for interactive elements */
+    .fade-enter-active, .fade-leave-active {
+      transition: opacity 0.3s ease;
+    }
+    .fade-enter-from, .fade-leave-to {
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Wrapper containing all state and DOM for the Imweb Code Widget -->
+  <div id="onul-widget" x-data="onulWidgetInstance" class="min-h-screen relative overflow-x-hidden selection:bg-[#E6DCD0] selection:text-[#2C2621]">
+    
+    <!-- Dynamic Toast Notification -->
+    <div x-show="toastMessage" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 translate-y-8 -translate-x-1/2"
+         x-transition:enter-end="opacity-100 translate-y-0 -translate-x-1/2"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 translate-y-0 -translate-x-1/2"
+         x-transition:leave-end="opacity-0 translate-y-4 -translate-x-1/2"
+         class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 rounded-full bg-[#3F3730]/95 px-6 py-3.5 text-center text-[13px] font-light tracking-wide text-[#FAF7F2] shadow-xl backdrop-blur-sm flex items-center gap-2"
+         style="display: none;">
+      <svg class="h-4 w-4 text-[#E6DCD0] animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+      </svg>
+      <span x-text="toastMessage"></span>
+    </div>
+
+    <!-- Floating Scroll-to-Top Button -->
+    <button x-show="scrollY > 300"
+            style="display: none;"
+            x-transition
+            @click="window.scrollTo({ top: 0, behavior: 'smooth' })"
+            class="fixed bottom-8 right-8 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-[#9E8D7A]/30 bg-[#FAF7F2]/95 text-[#2C2621] shadow-md hover:bg-[#2C2621] hover:text-[#FAF7F2] hover:border-transparent transition-all duration-300 group">
+      <svg class="h-4 w-4 transition-transform group-hover:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+      </svg>
+    </button>
+
+    <!-- Header Navigation Section -->
+    <header :class="scrollY > 50 ? 'bg-[#FAF7F2]/90 shadow-sm py-4 backdrop-blur-md border-b border-[#E6DCD0]/30' : 'bg-transparent py-6'"
+            class="fixed top-0 left-0 right-0 z-40 transition-all duration-500">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-6 md:px-12">
+        <!-- Logo -->
+        <button @click="window.scrollTo({ top: 0, behavior: 'smooth' })" class="group flex flex-col items-start text-left cursor-pointer border-none bg-transparent">
+          <span class="serif-font text-xl tracking-widest text-[#2C2621] md:text-2xl font-light">
+            stay.<span class="italic text-[#9E8D7A]">Onul</span>
+          </span>
+          <span class="serif-font text-[13px] tracking-widest text-[#9E8D7A] transition-colors group-hover:text-[#2C2621]">
+            온을 (溫乙)
+          </span>
+        </button>
+
+        <!-- Desktop Navigation -->
+        <nav class="hidden items-center gap-10 text-[13px] font-light tracking-widest text-[#3F3730] md:flex">
+          <button @click="scrollToSection('about')" class="relative cursor-pointer py-1 transition-colors hover:text-[#9E8D7A] bg-transparent border-none">이야기</button>
+          <button @click="scrollToSection('rooms')" class="relative cursor-pointer py-1 transition-colors hover:text-[#9E8D7A] bg-transparent border-none">머무는 공간</button>
+          <button @click="scrollToSection('booking')" class="relative cursor-pointer py-1 transition-colors hover:text-[#9E8D7A] bg-transparent border-none">예약 및 이용 안내</button>
+          <button @click="scrollToSection('contact')" class="rounded-full bg-[#2C2621] px-5 py-2.5 text-[13px] font-medium text-[#FAF7F2] tracking-wider transition-all hover:bg-[#3F3730]">오시는 길</button>
+        </nav>
+
+        <!-- Mobile Navigation Toggle Button -->
+        <button @click="isMobileMenuOpen = !isMobileMenuOpen" class="flex h-10 w-10 items-center justify-center rounded-full border border-[#9E8D7A]/30 text-[#2C2621] md:hidden bg-transparent cursor-pointer">
+          <template x-if="!isMobileMenuOpen">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </template>
+          <template x-if="isMobileMenuOpen">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </template>
+        </button>
+      </div>
+
+      <!-- Mobile Navigation Drawer -->
+      <div x-show="isMobileMenuOpen"
+           style="display: none;"
+           x-transition:enter="transition ease-out duration-300"
+           x-transition:enter-start="opacity-0 -translate-y-4"
+           x-transition:enter-end="opacity-100 translate-y-0"
+           x-transition:leave="transition ease-in duration-200"
+           x-transition:leave-start="opacity-100 translate-y-0"
+           x-transition:leave-end="opacity-0 -translate-y-4"
+           class="absolute top-full left-0 right-0 border-b border-[#E6DCD0] bg-[#FAF7F2] px-8 py-6 shadow-lg md:hidden">
+        <div class="flex flex-col items-start gap-5">
+          <button @click="scrollToSection('about')" class="serif-font text-lg tracking-widest text-[#2C2621] bg-transparent border-none">이야기</button>
+          <button @click="scrollToSection('rooms')" class="serif-font text-lg tracking-widest text-[#2C2621] bg-transparent border-none">머무는 공간</button>
+          <button @click="scrollToSection('booking')" class="serif-font text-lg tracking-widest text-[#2C2621] bg-transparent border-none">예약 및 이용 안내</button>
+          <button @click="scrollToSection('contact')" class="w-full rounded-full bg-[#2C2621] py-3 text-center text-[13px] tracking-widest text-[#FAF7F2] font-semibold">오시는 길</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO SECTION (Elegant Editorial Poster Style) -->
+    <section id="hero" class="relative flex min-h-screen items-center justify-center overflow-hidden px-8 md:px-20 lg:px-24 xl:px-32 bg-[#F3ECE1] py-24 lg:py-0 border-b border-[#E6DCD0]">
+      <div class="absolute inset-8 z-10 pointer-events-none border border-[#9E8D7A]/10 md:inset-12 hidden sm:block"></div>
+      
+      <div class="relative z-20 mx-auto max-w-7xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+        <!-- Left Column: Editorial Text -->
+        <div class="lg:col-span-5 lg:pr-4 flex flex-col justify-center text-left z-10">
+          <div class="flex items-center gap-3.5 mb-6">
+            <span class="serif-font text-[13px] tracking-[0.3em] text-[#9E8D7A] uppercase font-light">경주 황남동 독채 한옥 스테이</span>
+            <div class="h-[1.5px] w-5 bg-[#9E8D7A]/40"></div>
+          </div>
+
+          <h1 class="serif-font text-3xl font-light leading-snug tracking-wide text-[#2C2621] sm:text-4xl md:text-[34px] lg:text-[36px] md:leading-[1.2]">
+            나를 위해 준비된 <br />
+            온전한 고요와 <br />
+            <span class="italic text-[#9E8D7A]">따뜻한 쉼표</span>
+          </h1>
+
+          <p class="mt-6 text-[13.5px] font-light leading-relaxed text-[#5F5449] max-w-md">
+            황리단길 조용한 뒤안길, 고택의 따뜻한 원목 가구와 대나무 정원 속 한옥 독채 온을(溫乙)에서 복잡한 세상사를 훌훌 털어내고 아날로그 리추얼을 통해 내면을 평화롭게 정돈하는 하루를 맞이해보세요.
+          </p>
+
+          <div class="mt-8 flex flex-col sm:flex-row gap-3.5">
+            <button @click="scrollToSection('rooms')" class="px-6 py-3.5 rounded-full bg-[#2C2621] text-[#FAF7F2] text-[13px] tracking-widest font-normal hover:bg-[#3F3730] transition-all duration-300 shadow-md">
+              머무는 공간 보기
+            </button>
+            <button @click="scrollToSection('booking')" class="px-6 py-3.5 rounded-full border border-[#2C2621]/40 text-[#2C2621] text-[13px] tracking-widest font-light hover:border-[#2C2621] hover:bg-[#2C2621]/5 transition-all duration-300">
+              예약 및 이용 안내
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: Premium framed photography -->
+        <div class="lg:col-span-7 flex flex-col justify-center items-center relative z-10">
+          <div class="relative w-full max-w-md lg:max-w-full">
+            <div class="absolute -inset-2 rounded-none border border-[#9E8D7A]/15 translate-x-3 translate-y-3 z-0"></div>
+            
+            <div class="relative w-full aspect-[4/3] sm:aspect-[16/10] lg:aspect-[4/3] overflow-hidden rounded-none border border-[#E6DCD0] shadow-2xl p-3 bg-white">
+              <div class="relative h-full w-full overflow-hidden rounded-none bg-[#F3ECE1]">
+                <img src="/src/assets/images/stay_exterior_1781373858554.jpg" 
+                     alt="온을 한옥 외관 전경" 
+                     class="h-full w-full object-cover object-center filter saturate-[0.92] hover:scale-105 transition-transform duration-1000">
+                <div class="absolute inset-0 bg-[#E6DCD0]/10 mix-blend-multiply pointer-events-none"></div>
+              </div>
+            </div>
+
+            <div class="w-full max-w-md lg:max-w-full flex justify-between items-center mt-4 text-[13px] font-mono tracking-widest text-[#9E8D7A] uppercase px-1">
+              <span>GYEONGJU TRADITIONAL COURT STAY ARCHIVE</span>
+              <span>EST. 2026 / COZY HARMONY</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scroll Indicator -->
+      <div @click="scrollToSection('about')" class="absolute bottom-6 left-1/2 -translate-x-1/2 cursor-pointer flex flex-col items-center text-[#9E8D7A]">
+        <span class="serif-font text-[13px] tracking-[0.25em] text-[#9E8D7A] uppercase">머무름의 시작</span>
+        <div class="mt-2 h-8 w-[1px] bg-gradient-to-b from-[#9E8D7A]/80 to-transparent"></div>
+      </div>
+    </section>
+
+    <!-- STORIES & ESSENCE SECTION -->
+    <section id="about" class="relative z-10 bg-[#FAF7F2] py-24 md:py-36">
+      <div class="mx-auto max-w-5xl px-6 md:px-12">
+        <div class="flex justify-center mb-16">
+          <span class="serif-font text-[13px] tracking-[0.3em] text-[#9E8D7A] uppercase">BRAND PHILOSOPHY</span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-20">
+          <div class="flex flex-col justify-center lg:col-span-7">
+            <span class="serif-font text-[13px] md:text-sm tracking-wider italic text-[#9E8D7A] mb-2.5">어제와 내일 사이의 오아시스</span>
+            <h2 class="serif-font text-2xl font-light leading-snug tracking-wide text-[#2C2621] sm:text-3xl lg:text-[32px] lg:leading-[1.35]">
+              바쁜 일상에서 한 걸음 물러나 <br/>
+              조용한 쉼표를 찍는 시간
+            </h2>
+            
+            <div class="my-6 h-[1px] w-16 bg-[#E6DCD0]"></div>
+            
+            <div class="space-y-4 text-[13.5px] lg:text-[14px] font-light leading-relaxed text-[#5F5449]">
+              <p>
+                끝없이 흘러가는 번잡함을 당연하게 여기는 시대 속에서, 우리는 가끔 마음의 완전한 멈춤과 포근한 보호를 잊고 살아갑니다. 
+                신비로운 휴식과도 같이 온전한 쉼이 필요한 날, 당신을 위한 정갈한 안식처 온을이 마련되었습니다.
+              </p>
+              <p>
+                <strong>온을(溫乙)</strong>은 '따뜻할 온(溫)'에 둘째 천간이자 쉼표를 닮은 '을(乙)' 모양을 품고 있습니다. 
+                옛 골목 정취가 그대로 흐르는 경주 황남동의 아늑한 자락에서, 머무는 순간만큼은 소란한 세상의 문장을 조용히 닫고 오롯이 쉼을 위한 묵묵함으로 이 자리를 지키고 있습니다.
+              </p>
+              <p class="serif-font italic text-[#8B7A68] pt-4.5 mt-2 border-t border-[#E6DCD0]/60 text-sm sm:text-[14px] leading-relaxed tracking-wide font-normal">
+                "소란한 세상의 모든 마침표를 잠시 쉼표로 바꾸는 밤. 나만의 숨소리에만 귀를 기울여 보아도 좋습니다."
+              </p>
+            </div>
+          </div>
+
+          <!-- Fast checklist habits style -->
+          <div class="relative flex items-center justify-center lg:col-span-5">
+            <div class="relative border border-[#E6DCD0]/40 p-6 md:p-8 w-full max-w-sm rounded-[2px] bg-[#FAF7F2]/50 shadow-none">
+              <span class="absolute -top-7 left-6 serif-font text-6xl text-[#9E8D7A]/15 select-none font-extralight">“</span>
+              <div class="relative z-10">
+                <h3 class="serif-font text-[14px] font-medium text-[#2C2621] mb-6">스스로를 보살피는<br/>온을에서의 4가지 습관</h3>
+                
+                <ul class="space-y-5 text-[13px] font-light text-[#5F5449]">
+                  <li class="flex items-start gap-4">
+                    <span class="serif-font text-[#9E8D7A] text-[13px] mt-0.5">01</span>
+                    <div>
+                      <strong class="block text-[#2C2621] font-medium mb-1 text-[13px]">대나무 소리에 귀 기울이기</strong>
+                      <p class="text-[13px] leading-relaxed text-[#5F5449] mt-0.5">을(乙) 다실 너머의 싱그러운 대나무 정원에서 스며오는 소리를 가만히 소유해 봅니다.</p>
+                    </div>
+                  </li>
+                  <li class="flex items-start gap-4">
+                    <span class="serif-font text-[#9E8D7A] text-[13px] mt-0.5">02</span>
+                    <div>
+                      <strong class="block text-[#2C2621] font-medium mb-1 text-[13px]">느릿한 호흡으로 우려내는 차</strong>
+                      <p class="text-[13px] leading-relaxed text-[#5F5449] mt-0.5">천천히 따뜻한 김 속에 차엽을 우려내는 명상의 순간을 즐깁니다.</p>
+                    </div>
+                  </li>
+                  <li class="flex items-start gap-4">
+                    <span class="serif-font text-[#9E8D7A] text-[13px] mt-0.5">03</span>
+                    <div>
+                      <strong class="block text-[#2C2621] font-medium mb-1 text-[13px]">따뜻한 화산석 속 잊혀가는 긴장</strong>
+                      <p class="text-[13px] leading-relaxed text-[#5F5449] mt-0.5">안(安) 욕실의 자연 화산석 힐링 전경 속에서 깊은 육체의 이완을 느껴보세요.</p>
+                    </div>
+                  </li>
+                  <li class="flex items-start gap-4">
+                    <span class="serif-font text-[#9E8D7A] text-[13px] mt-0.5">04</span>
+                    <div>
+                      <strong class="block text-[#2C2621] font-medium mb-1 text-[13px]">시간의 결을 살리는 음악의 조각</strong>
+                      <p class="text-[13px] leading-relaxed text-[#5F5449] mt-0.5">결(結) LP 플레이어 위의 선율 속에서 나만을 위해 엄선된 사운드를 감상합니다.</p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPACES / ROOMS SECTION -->
+    <section id="rooms" class="bg-[#F3ECE1] py-24 md:py-36">
+      <div class="mx-auto max-w-7xl px-6 md:px-12">
+        
+        <div class="mb-16 text-center">
+          <span class="serif-font text-[13px] tracking-[0.3em] text-[#9E8D7A] uppercase block mb-3">OUR GORGEOUS SPACES</span>
+          <h2 class="serif-font text-3xl font-light text-[#2C2621] tracking-wide">쉼의 모양을 다듬은 온을의 고유한 공간들</h2>
+          <p class="mx-auto mt-4 max-w-xl text-[13px] font-light leading-relaxed text-[#3F3730]/80">
+            어느 방에 스며드는가에 따라 사방의 분위기와 시선의 무드가 달라집니다. 완벽한 프라이버시가 담보된 온을의 4가지 테마 스튜디오를 소개합니다. (카드를 클릭하면 상세 갤러리와 이용 규칙을 확인할 수 있습니다.)
+          </p>
+        </div>
+
+        <!-- 4 Rooms Grid Layout -->
+        <div class="grid grid-cols-1 gap-10 md:grid-cols-2">
+          <template x-for="room in roomsData" :key="room.id">
+            <div @click="openRoomModal(room.id)" 
+                 class="group overflow-hidden rounded-[2px] bg-[#FAF7F2] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer flex flex-col justify-between">
+              <div>
+                <div class="relative overflow-hidden aspect-[4/3]">
+                  <img :src="room.image" :alt="room.title" class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105">
+                  <div class="absolute top-4 left-4 bg-[#FAF7F2]/90 px-3 py-1 text-[13px] tracking-widest text-[#3F3730] uppercase" x-text="room.theme"></div>
+                </div>
+                
+                <div class="p-8 md:p-10 pb-4">
+                  <span class="serif-font text-lg font-normal text-[#2C2621]" x-text="room.title + ' – ' + room.subTitle"></span>
+                  <p class="mt-4 text-[13px] font-light leading-relaxed text-[#3F3730] line-clamp-2 h-10" x-text="room.description"></p>
+                </div>
+              </div>
+
+              <div class="p-8 md:p-10 pt-0 flex justify-between items-center border-t border-[#E6DCD0]/40 mt-4 bg-[#FAF7F2]">
+                <span class="text-[13px] text-[#9E8D7A] tracking-wider uppercase font-mono" x-text="room.capacity"></span>
+                <span class="text-[13px] font-serif text-[#2C2621] flex items-center gap-1 hover:text-[#9E8D7A] transition-colors font-medium">
+                  공간 상세히 보기
+                  <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Elegant Senses & Rituals Guide -->
+        <div class="mt-20 rounded-[2px] bg-[#E6DCD0]/40 p-8 md:p-12 text-left">
+          <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10 items-center">
+            <div class="lg:col-span-7">
+              <span class="serif-font text-[13px] tracking-widest text-[#9E8D7A] font-semibold block mb-2">MIND MINIMALISM RITUAL</span>
+              <h3 class="serif-font text-xl text-[#2C2621] mb-3">온을(溫乙)을 온전히 소유하는 비움과 채움의 리추얼</h3>
+              <p class="text-[13px] font-light leading-relaxed text-[#3F3730]">
+                온을은 단순한 하루의 머무름을 넘어, 온 한옥에 불어오는 바람과 햇살 속에서 복잡해진 우리의 깊은 감각을 정제하는 공간입니다. <br class="hidden md:inline" />
+                '을(乙) 다실'에 마련된 명인의 수제 다기 가이드와 함께 계절 차를 마시는 티 브루잉, '안(安) 온욕실'에 비치된 전용 편백 스크럽 소금이 전하는 향기로운 반신욕, 그리고 '결(結) 음악실'의 바이닐 선율 속에 마음을 녹이는 시간까지 머무시는 동안 온전히 준비해 드립니다.
+              </p>
+            </div>
+            
+            <div class="lg:col-span-5 lg:pl-4 flex flex-col justify-center">
+              <div class="rounded-[2px] border border-[#9E8D7A]/30 bg-[#FAF7F2]/80 p-5 space-y-3.5">
+                <div class="flex items-start gap-2.5">
+                  <span class="text-[13px] bg-[#9E8D7A] text-[#FAF7F2] font-semibold px-2 py-0.5 rounded-full uppercase font-mono">Tea</span>
+                  <p class="text-[13px] font-light text-[#3F3730]">계절을 정갈하게 우려내는 수제 웰컴 티 세트 제공</p>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <span class="text-[13px] bg-[#9E8D7A] text-[#FAF7F2] font-semibold px-2 py-0.5 rounded-full uppercase font-mono">Spa</span>
+                  <p class="text-[13px] font-light text-[#3F3730]">편백 바스 솔트 및 온욕실 전용 천연 가운 키트 완비</p>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <span class="text-[13px] bg-[#9E8D7A] text-[#FAF7F2] font-semibold px-2 py-0.5 rounded-full uppercase font-mono">Music</span>
+                  <p class="text-[13px] font-light text-[#3F3730]">오디오 살롱을 채우는 엄선 큐레이션 LP 콜렉션 이용</p>
+                </div>
+              </div>
+              <button @click="scrollToSection('booking'); triggerToast('공간 정책 및 요금 정보를 즉시 확인합니다.');" 
+                      class="mt-6 w-full rounded-full bg-[#2C2621] py-3.5 text-center text-[13px] tracking-widest text-[#FAF7F2] uppercase hover:bg-[#3F3730] transition-colors font-medium border-none cursor-pointer">
+                공간 정책 및 요금 확인하기
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- POLICIES & INFORMATION SECTION (Replacing calculation form) -->
+    <section id="booking" class="bg-[#FAF7F2] py-24 md:py-36 border-b border-[#E6DCD0]/30">
+      <div class="mx-auto max-w-5xl px-6 md:px-12">
+        
+        <div class="mb-16 text-center">
+          <span class="serif-font text-[13px] tracking-[0.3em] text-[#9E8D7A] uppercase block mb-3">RESERVATION GUIDE</span>
+          <h2 class="serif-font text-3xl font-light text-[#2C2621]">예약 및 이용 정보 안내</h2>
+          <p class="mx-auto mt-4 max-w-md text-[13px] font-light text-[#3F3730]/80">
+            온을 독채 스테이의 실시간 정원 정책, 가격 산정표, 공간별 상세 수칙 및 환불 기준서입니다. 쾌적한 쉼을 위해 방문 전 반드시 숙지 부탁드립니다.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+          
+          <!-- Tab Actuators -->
+          <div class="md:col-span-4 flex flex-col gap-2.5">
+            <button @click="activePolicyTab = 'reservation'"
+                    :class="activePolicyTab === 'reservation' ? 'bg-[#2C2621] border-[#2C2621] text-[#FAF7F2] shadow-sm' : 'bg-[#F3ECE1]/40 border-[#E6DCD0] text-[#3F3730] hover:bg-[#F3ECE1]'"
+                    class="p-4 text-left rounded-[2px] transition-all flex flex-col gap-1 cursor-pointer border">
+              <span class="text-[14px] font-medium tracking-wide">예약 안내</span>
+              <span :class="activePolicyTab === 'reservation' ? 'text-[#FAF7F2]/60' : 'text-[#9E8D7A]'" class="text-[13px]">기본 입퇴실 및 예약 절차</span>
+            </button>
+
+            <button @click="activePolicyTab = 'space'"
+                    :class="activePolicyTab === 'space' ? 'bg-[#2C2621] border-[#2C2621] text-[#FAF7F2] shadow-sm' : 'bg-[#F3ECE1]/40 border-[#E6DCD0] text-[#3F3730] hover:bg-[#F3ECE1]'"
+                    class="p-4 text-left rounded-[2px] transition-all flex flex-col gap-1 cursor-pointer border">
+              <span class="text-[14px] font-medium tracking-wide">각 공간 이용 안내</span>
+              <span :class="activePolicyTab === 'space' ? 'text-[#FAF7F2]/60' : 'text-[#9E8D7A]'" class="text-[13px]">공간별 고유 수칙 및 장비</span>
+            </button>
+
+            <button @click="activePolicyTab = 'refund'"
+                    :class="activePolicyTab === 'refund' ? 'bg-[#2C2621] border-[#2C2621] text-[#FAF7F2] shadow-sm' : 'bg-[#F3ECE1]/40 border-[#E6DCD0] text-[#3F3730] hover:bg-[#F3ECE1]'"
+                    class="p-4 text-left rounded-[2px] transition-all flex flex-col gap-1 cursor-pointer border">
+              <span class="text-[14px] font-medium tracking-wide">환불 안내</span>
+              <span :class="activePolicyTab === 'refund' ? 'text-[#FAF7F2]/60' : 'text-[#9E8D7A]'" class="text-[13px]">취소 일자별 보장 비율</span>
+            </button>
+
+            <button @click="activePolicyTab = 'eviction'"
+                    :class="activePolicyTab === 'eviction' ? 'bg-[#2C2621] border-[#2C2621] text-[#FAF7F2] shadow-sm' : 'bg-[#F3ECE1]/40 border-[#E6DCD0] text-[#3F3730] hover:bg-[#F3ECE1]'"
+                    class="p-4 text-left rounded-[2px] transition-all flex flex-col gap-1 cursor-pointer border">
+              <span class="text-[14px] font-medium tracking-wide">환불 없는 퇴실 조치</span>
+              <span :class="activePolicyTab === 'eviction' ? 'text-[#FAF7F2]/60' : 'text-[#9E8D7A]'" class="text-[13px]">안전과 청결을 위한 불가 조건</span>
+            </button>
+
+            <button @click="activePolicyTab = 'pricing'"
+                    :class="activePolicyTab === 'pricing' ? 'bg-[#2C2621] border-[#2C2621] text-[#FAF7F2] shadow-sm' : 'bg-[#F3ECE1]/40 border-[#E6DCD0] text-[#3F3730] hover:bg-[#F3ECE1]'"
+                    class="p-4 text-left rounded-[2px] transition-all flex flex-col gap-1 cursor-pointer border">
+              <span class="text-[14px] font-medium tracking-wide">가격 안내</span>
+              <span :class="activePolicyTab === 'pricing' ? 'text-[#FAF7F2]/60' : 'text-[#9E8D7A]'" class="text-[13px]">요일별 기본 및 추가 요금</span>
+            </button>
+
+            <!-- Book Now Simulation Trigger -->
+            <button @click="handleBookingRedirect('온을 한옥 독채 전체')" 
+                    class="mt-4 w-full bg-[#9E8D7A] hover:bg-[#8A7B6E] text-white py-4 rounded-[2px] text-[13px] tracking-widest font-semibold uppercase flex items-center justify-center gap-2 transition-colors cursor-pointer border-none">
+              <span>외부 실시간 예약 사이트 이동</span>
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Tab Content Display -->
+          <div class="md:col-span-8 bg-[#F3ECE1]/30 border border-[#E6DCD0] rounded-[2px] p-6 md:p-8 min-h-[380px] flex flex-col justify-between">
+            
+            <!-- Reservation Info Tab -->
+            <div x-show="activePolicyTab === 'reservation'" x-transition:enter="transition duration-200" class="space-y-5">
+              <div class="flex items-center gap-3 border-b border-[#E6DCD0] pb-3.5">
+                <svg class="h-5 w-5 text-[#9E8D7A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <h3 class="serif-font text-lg font-normal text-[#2C2621]">입퇴실 및 예약 기본 안내</h3>
+              </div>
+              <ul class="space-y-4 text-[13.5px] font-light leading-relaxed text-[#5F5449]">
+                <li class="flex gap-2.5 items-start">
+                  <span class="text-[#9E8D7A] mt-1">•</span>
+                  <span><strong>100% 프라이빗 독채 숙소</strong>: 하루에 단 한 팀(최대 5인)만 예약이 가능하여 온전한 자유를 제공합니다.</span>
+                </li>
+                <li class="flex gap-2.5 items-start">
+                  <span class="text-[#9E8D7A] mt-1">•</span>
+                  <span><strong>입실 및 퇴실 시간</strong>: 입실은 <strong>오후 4시</strong>, 퇴실은 <strong>오전 11시</strong>입니다. (쾌적한 객실 정돈을 위해 퇴실 시간을 필히 준수해 주시길 당부드립니다.)</span>
+                </li>
+                <li class="flex gap-2.5 items-start">
+                  <span class="text-[#9E8D7A] mt-1">•</span>
+                  <span><strong>실시간 예약 연동</strong>: 당일 예약 신청은 네이버 예약 및 스테이폴리오 등 연계된 실시간 웹 사이트로 이관되어 즉시 확정 처리됩니다.</span>
+                </li>
+                <li class="flex gap-2.5 items-start">
+                  <span class="text-[#9E8D7A] mt-1">•</span>
+                  <span><strong>어메니티 리추얼</strong>: 머무시는 모든 고객님께 이솝(Aesop) 바디 워시 키트, 수제 웰컴 찻잎 및 핸드브루잉 도구가 무상 지급됩니다.</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Space Rules Tab -->
+            <div x-show="activePolicyTab === 'space'" x-transition:enter="transition duration-200" class="space-y-5" style="display: none;">
+              <div class="flex items-center gap-3 border-b border-[#E6DCD0] pb-3.5">
+                <svg class="h-5 w-5 text-[#9E8D7A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <h3 class="serif-font text-lg font-normal text-[#2C2621]">4대 감각 스튜디오 공간별 안내</h3>
+              </div>
+              <div class="grid grid-cols-1 gap-4 text-[13.5px] font-light leading-relaxed text-[#5F5449]">
+                <div class="p-3 bg-white/40 rounded-[2px] border border-[#E6DCD0]/40">
+                  <strong class="text-[#2C2621] block mb-1">온(溫) – 고요한 침실</strong>
+                  <span>유기농 워싱 린넨 킹 베드 및 고해상도 천장 시네빔이 탑재되어 소리 없는 정적인 시청이 가능합니다.</span>
+                </div>
+                <div class="p-3 bg-white/40 rounded-[2px] border border-[#E6DCD0]/40">
+                  <strong class="text-[#2C2621] block mb-1">을(乙) – 정원 다실</strong>
+                  <span>명인의 다기 도구와 수제 우롱차가 준비됩니다. 야외 대나무 가든을 내다보며 한 김 식은 온수로 명상하십시오.</span>
+                </div>
+                <div class="p-3 bg-white/40 rounded-[2px] border border-[#E6DCD0]/40">
+                  <strong class="text-[#2C2621] block mb-1">안(安) – 화산석 스파욕실</strong>
+                  <span>원초적 고요 속에서 천연 화산석 스파를 사용하실 수 있습니다. 이용 30분 전 자가 급수를 가동해 주시면 따뜻함이 가득 채워집니다.</span>
+                </div>
+                <div class="p-3 bg-white/40 rounded-[2px] border border-[#E6DCD0]/40">
+                  <strong class="text-[#2C2621] block mb-1">결(結) – 청음 독서살롱</strong>
+                  <span>아날로그 바이닐 턴테이블과 마셜 액티브 청음 세트가 구비되어 감각적인 선율로 영혼의 결을 이완합니다.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Refund Tab -->
+            <div x-show="activePolicyTab === 'refund'" x-transition:enter="transition duration-200" class="space-y-5" style="display: none;">
+              <div class="flex items-center gap-3 border-b border-[#E6DCD0] pb-3.5">
+                <svg class="h-5 w-5 text-[#9E8D7A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="serif-font text-lg font-normal text-[#2C2621]">취소 일자별 환불 안내</h3>
+              </div>
+              <div class="space-y-4 text-[13.5px] font-light text-[#5F5449] leading-relaxed">
+                <p>온을 스테이는 1일 1팀 전용 독채로 운영되기에 취소 시 공석 복구가 어렵습니다. 다음의 예약 보증 규정을 반드시 사전에 검토 바랍니다.</p>
+                
+                <div class="border border-[#E6DCD0] rounded-[2px] overflow-hidden">
+                  <table class="w-full text-left border-collapse text-[13px]">
+                    <thead>
+                      <tr class="bg-[#E6DCD0]/40 border-b border-[#E6DCD0]">
+                        <th class="p-3 font-medium text-[#2C2621]">취소 요청 시기</th>
+                        <th class="p-3 font-medium text-[#2C2621] text-right">최종 환불 환산 비율</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="border-b border-[#E6DCD0]/40">
+                        <td class="p-3">이용 예정일 10일 전까지</td>
+                        <td class="p-3 text-right font-semibold text-green-800">100% 전액 환불</td>
+                      </tr>
+                      <tr class="border-b border-[#E6DCD0]/40">
+                        <td class="p-3">이용 예정일 7일 전까지</td>
+                        <td class="p-3 text-right">80% 환불</td>
+                      </tr>
+                      <tr class="border-b border-[#E6DCD0]/40">
+                        <td class="p-3">이용 예정일 5일 전까지</td>
+                        <td class="p-3 text-right">50% 환불</td>
+                      </tr>
+                      <tr>
+                        <td class="p-3">이용 예정일 3일 전 ~ 당일</td>
+                        <td class="p-3 text-right font-medium text-red-800">환불 전면 불가</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="text-[13px] text-[#9E8D7A] italic leading-normal">• 항공기 결항이나 천재지변 공문서가 발급되는 증빙에 한하여 당일 취소건도 서류 제출 시 전액 예외 환불 처리됩니다.</p>
+              </div>
+            </div>
+
+            <!-- Eviction Tab -->
+            <div x-show="activePolicyTab === 'eviction'" x-transition:enter="transition duration-200" class="space-y-5" style="display: none;">
+              <div class="flex items-center gap-3 border-b border-[#E6DCD0] pb-3.5">
+                <svg class="h-5 w-5 text-[#9E8D7A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <h3 class="serif-font text-lg font-normal text-[#2C2621]">환불 없이 즉각 퇴실 조치되는 경우</h3>
+              </div>
+              <ul class="space-y-3.5 text-[13.5px] font-light leading-relaxed text-[#5F5449]">
+                <li class="flex gap-2.5 items-start p-2.5 bg-red-50/50 rounded-[2px] border border-red-100/50">
+                  <span class="text-red-700 font-bold">1</span>
+                  <span><strong>실내 전 구역 절대 금연</strong>: 전자담배를 포함하여 한옥 내부 및 목재 화산석 스파 주변 흡연은 화재 예방을 위해 엄격히 금지되며, 위반 시 특수 목조 클리닝 청소비가 전액 구상 청구되고 강제 퇴실됩니다.</span>
+                </li>
+                <li class="flex gap-2.5 items-start p-2.5 bg-red-50/50 rounded-[2px] border border-red-100/50">
+                  <span class="text-red-700 font-bold">2</span>
+                  <span><strong>반려동물 동반 불가</strong>: 위생과 천연 패브릭 베딩의 보존을 위해 무단 애완견/반려동물 입실 발견 시 현장에서 즉시 예약 해지 처분됩니다.</span>
+                </li>
+                <li class="flex gap-2.5 items-start p-2.5 bg-red-50/50 rounded-[2px] border border-red-100/50">
+                  <span class="text-red-700 font-bold">3</span>
+                  <span><strong>예약 외 무단 인원 동반</strong>: 당초 지정한 계약 여행 인원 외 외부 방문자를 초대하거나 야간 잠입시키는 행위는 불법 도난 방지를 위해 금지됩니다.</span>
+                </li>
+                <li class="flex gap-2.5 items-start p-2.5 bg-red-50/50 rounded-[2px] border border-red-100/50">
+                  <span class="text-red-700 font-bold">4</span>
+                  <span><strong>심야 고성방가 및 취사</strong>: 주거 밀접 골목 특성상 밤 10시 이후 야외 대나무 정원 등지에서 소음 소란 및 바비큐 장비를 밀반입해 고기를 구워 드시는 행동은 법적으로 규제합니다.</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Pricing Tab -->
+            <div x-show="activePolicyTab === 'pricing'" x-transition:enter="transition duration-200" class="space-y-5" style="display: none;">
+              <div class="flex items-center gap-3 border-b border-[#E6DCD0] pb-3.5">
+                <svg class="h-5 w-5 text-[#9E8D7A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="serif-font text-lg font-normal text-[#2C2621]">기본 객실 요금 산출 가이드</h3>
+              </div>
+              <div class="space-y-4 text-[13.5px] font-light text-[#5F5449] leading-relaxed">
+                <p>온을 독채 스테이는 주말(금, 토, 공휴일 전날) 성수기와 주중 요금이 합리적으로 분리 지정되어 있습니다.</p>
+                
+                <div class="border border-[#E6DCD0] rounded-[2px] overflow-hidden">
+                  <div class="grid grid-cols-2 border-b border-[#E6DCD0] text-[13px]">
+                    <div class="p-3.5 bg-[#E6DCD0]/40 font-medium text-[#2C2621]">이용 요일 구분</div>
+                    <div class="p-3.5 bg-[#E6DCD0]/40 font-medium text-[#2C2621] text-right">기본 1박 요금 (2인 기준)</div>
+                  </div>
+                  <div class="grid grid-cols-2 border-b border-[#E6DCD0]/20 text-[13px]">
+                    <div class="p-3.5">평일 요금 (일요일 ~ 목요일 투숙)</div>
+                    <div class="p-3.5 text-right font-semibold text-[#2C2621]">450,000 KRW / 1박</div>
+                  </div>
+                  <div class="grid grid-cols-2 text-[13px]">
+                    <div class="p-3.5">주말 및 성수기 (금, 토, 공휴일 전날)</div>
+                    <div class="p-3.5 text-right font-semibold text-[#2C2621]">580,000 KRW / 1박</div>
+                  </div>
+                </div>
+
+                <div class="p-4 bg-amber-50/50 rounded-[2px] border border-amber-100 text-[13px] text-[#3F3730] space-y-1.5 leading-relaxed">
+                  <strong class="block text-[#2C2621] font-medium">• 인원 추가 안내:</strong>
+                  <p>기본 이용 인원은 2인입니다. (초과 시 1인당 1박 기준 30,000원의 요금이 가산 부과됩니다. 영유아 역시 침구 교체비에 해당하므로 정식 포함됩니다. 최대 수용 정원은 5인입니다.)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer Alert line -->
+            <div class="mt-8 pt-4 border-t border-[#E6DCD0]/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-[13px]">
+              <span class="text-[#9E8D7A] flex items-center gap-1.5 font-light">
+                <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                실시간 확정 시 문자 메시지로 주차장 약도가 자동 전송됩니다.
+              </span>
+              <span class="serif-font text-[#2C2621] font-medium">
+                stay.Onul Gyeongju Slow Stay
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPERIENCE RETREAT CHRONIC FLOW -->
+    <section class="bg-[#F3ECE1] py-20 pb-28">
+      <div class="mx-auto max-w-5xl px-6 md:px-12 text-center">
+        <span class="serif-font text-[13px] tracking-[0.3em] text-[#9E8D7A] uppercase block mb-3">EXPERIENCE RETREAT</span>
+        <h2 class="serif-font text-2xl text-[#2C2621] font-light">온을에서의 정갈한 하루 흐름</h2>
+        
+        <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+          <div class="bg-[#FAF7F2] p-8 rounded-[2px] shadow-sm">
+            <span class="serif-font text-3xl italic text-[#9E8D7A]/50 block mb-4">16:00</span>
+            <h4 class="serif-font text-base text-[#2C2621] mb-2">마중과 웰컴 브루잉</h4>
+            <p class="text-[13px] font-light leading-relaxed text-[#3F3730]">
+              도착과 동시에 고요가 흐르는 로비 다실방에서, 계절의 맛을 달인 발효 웰컴 티를 준비해 드립니다. 몸수색과 소리 차단을 통해 한층 완만한 쉼을 개시합니다.
+            </p>
+          </div>
+
+          <div class="bg-[#FAF7F2] p-8 rounded-[2px] shadow-sm">
+            <span class="serif-font text-3xl italic text-[#9E8D7A]/50 block mb-4">20:00</span>
+            <h4 class="serif-font text-base text-[#2C2621] mb-2">프라이빗 핫스파 온욕</h4>
+            <p class="text-[13px] font-light leading-relaxed text-[#3F3730]">
+              안(安) 욕실의 따스한 자연 온수 수면 위로 피어오르는 아로마 오일과 정적인 대나무 소리에 잠겨 가며 바스러져 있던 몸의 긴장을 정직하게 환원시킵니다.
+            </p>
+          </div>
+
+          <div class="bg-[#FAF7F2] p-8 rounded-[2px] shadow-sm">
+            <span class="serif-font text-3xl italic text-[#9E8D7A]/50 block mb-4">09:00</span>
+            <h4 class="serif-font text-base text-[#2C2621] mb-2">아날로그 바이닐 모닝</h4>
+            <p class="text-[13px] font-light leading-relaxed text-[#3F3730]">
+              맑게 갠 황남동 기와 지붕 가에 부딪히는 지평선 빛을 마주하고 결(結) 방의 아날로그 LP 음율을 틀어 가벼운 독서 속에서 상쾌한 퇴실 준비를 매듭짓습니다.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT, MAP SECTION -->
+    <section id="contact" class="bg-[#FAF7F2] border-t border-[#E6DCD0] py-24">
+      <div class="mx-auto max-w-5xl px-6 md:px-12">
+        <div class="grid grid-cols-1 gap-12 lg:grid-cols-12 items-center">
+          
+          <div class="lg:col-span-5 space-y-6">
+            <span class="serif-font text-[13px] tracking-widest text-[#9E8D7A] font-semibold block uppercase">LOCATION & INFORMATION</span>
+            <h2 class="serif-font text-3xl font-light text-[#2C2621]">소란한 길목 끝자락,<br/>조용히 마주한 자리</h2>
+            <div class="h-[1px] w-12 bg-[#9E8D7A]"></div>
+
+            <div class="space-y-4 text-[13px] font-light text-[#3F3730] leading-relaxed">
+              <div class="flex items-start gap-3">
+                <svg class="h-4.5 w-4.5 text-[#9E8D7A] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <div>
+                  <strong class="block text-[#2C2621] font-medium">도로명 주소</strong>
+                  <div class="flex items-center gap-1.5 mt-1">
+                    <span>경상북도 경주시 황남동 첨성로 45번길 12-8 (온을)</span>
+                    <button @click="handleCopy('경상북도 경주시 황남동 첨성로 45번길 12-8', '도로명 주소')" class="text-[#9E8D7A] hover:text-[#2C2621] p-0.5 bg-transparent border-none cursor-pointer">
+                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <svg class="h-4.5 w-4.5 text-[#9E8D7A] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                <div>
+                  <strong class="block text-[#2C2621] font-medium">동반 번호</strong>
+                  <div class="flex items-center gap-1.5 mt-1">
+                    <span>0507-1349-2680</span>
+                    <button @click="handleCopy('0507-1349-2680', '전화번호')" class="text-[#9E8D7A] hover:text-[#2C2621] p-0.5 bg-transparent border-none cursor-pointer">
+                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <svg class="h-4.5 w-4.5 text-[#9E8D7A] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <div>
+                  <strong class="block text-[#2C2621] font-medium">이메일 피드백</strong>
+                  <div class="flex items-center gap-1.5 mt-1">
+                    <span>stay.onul@gmail.com</span>
+                    <button @click="handleCopy('stay.onul@gmail.com', '이메일')" class="text-[#9E8D7A] hover:text-[#2C2621] p-0.5 bg-transparent border-none cursor-pointer">
+                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-4">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-[13px] font-light text-[#2C2621] hover:text-[#9E8D7A] pb-1 border-b border-[#2C2621]">
+                Instagram @stay.onul 소식 구경하기
+              </a>
+            </div>
+          </div>
+
+          <!-- Stylized Mock Map Component -->
+          <div class="lg:col-span-7">
+            <div class="relative rounded-[2px] border border-[#E6DCD0] bg-[#F3ECE1] p-4 text-[#3F3730] overflow-hidden aspect-video">
+              <div class="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#FAF7F2] to-[#F3ECE1]"></div>
+              
+              <div class="absolute top-1/2 left-0 right-0 h-[2px] bg-[#E6DCD0]"></div>
+              <div class="absolute left-1/3 top-0 bottom-0 w-[2px] bg-[#E6DCD0]"></div>
+              <div class="absolute left-2/3 top-0 bottom-0 w-[2px] bg-[#E6DCD0]/60"></div>
+              
+              <div class="absolute top-10 left-10 w-24 h-20 rounded-full bg-[#E6DCD0]/40 blur-sm flex items-center justify-center">
+                <span class="text-[13px] text-[#9E8D7A] font-serif italic">황리단길 정원</span>
+              </div>
+              <div class="absolute bottom-6 right-16 w-32 h-16 rounded-full bg-[#E6DCD0]/30 blur-sm flex items-center justify-center">
+                <span class="text-[13px] text-[#9E8D7A] font-serif italic">황남동 고분군</span>
+              </div>
+
+              <!-- Locator stays centered around absolute point -->
+              <div class="absolute top-[52%] left-[34%] z-10 -translate-x-1/2 -translate-y-1/2 text-center">
+                <div class="relative">
+                  <span class="absolute -top-1 -left-1 w-6 h-6 rounded-full bg-[#9E8D7A]/30 animate-ping"></span>
+                  <div class="relative h-4 w-4 rounded-full bg-[#2C2621] flex items-center justify-center shadow-md">
+                    <div class="h-1.5 w-1.5 rounded-full bg-[#FAF7F2]"></div>
+                  </div>
+                </div>
+                <div class="mt-2 text-[13px] bg-[#2C2621] text-[#FAF7F2] font-serif border-none rounded-[2px] px-2 py-1 shadow-sm">
+                  온을 (溫乙) Stay
+                </div>
+              </div>
+
+              <div class="absolute top-4 right-4 bg-[#FAF7F2] px-3 py-1.5 rounded-[2px] text-[13px] font-sans shadow-sm border border-[#E6DCD0]/80">
+                <span class="text-green-800 font-semibold">● </span> 경주역에서 택시로 12분 소요
+              </div>
+              <div class="absolute bottom-4 left-4 bg-[#FAF7F2] px-3 py-1.5 rounded-[2px] text-[13px] font-sans shadow-sm border border-[#E6DCD0]/80">
+                <span class="text-amber-800 font-semibold">● </span> 자차 방문 시 제1공영주차장 주차지원
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER SECTION -->
+    <footer class="bg-[#2C2621] text-[#FAF7F2]/80 font-light text-[13px] py-16">
+      <div class="mx-auto max-w-7xl px-6 md:px-12">
+        <div class="grid grid-cols-1 gap-12 md:grid-cols-4 md:gap-8">
+          
+          <div class="md:col-span-2 space-y-4">
+            <span class="serif-font text-lg tracking-widest text-[#FAF7F2] block">
+              stay.<span class="italic text-[#9E8D7A]">Onul</span>
+            </span>
+            <p class="text-[13px] leading-relaxed text-[#FAF7F2]/60 max-w-sm">
+              어제와 내일 사이에 조용히 쉼표를 두는 곳, 온을.<br/>
+              따뜻함이 연상되는 아날로그적 온기와 풍요로운 고요를 담은 채, 당신의 호흡과 일상의 속도를 차분히 안정시켜 주는 감지 높은 민속 독채 감성 처소입니다.
+            </p>
+          </div>
+
+          <div>
+            <h4 class="serif-font text-[13px] text-[#9E8D7A] tracking-wider uppercase mb-4">메뉴</h4>
+            <ul class="space-y-3.5 text-[13px] text-[#FAF7F2]/70">
+              <li><button @click="scrollToSection('about')" class="hover:text-[#FAF7F2] transition-colors cursor-pointer bg-transparent border-none text-[13px]">이야기</button></li>
+              <li><button @click="scrollToSection('rooms')" class="hover:text-[#FAF7F2] transition-colors cursor-pointer bg-transparent border-none text-[13px]">머무는 공간</button></li>
+              <li><button @click="scrollToSection('booking')" class="hover:text-[#FAF7F2] transition-colors cursor-pointer bg-transparent border-none text-[13px]">예약 및 이용 안내</button></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="serif-font text-[13px] text-[#9E8D7A] tracking-wider uppercase mb-4">알림 및 정보</h4>
+            <p class="text-[13px] text-[#FAF7F2]/60 leading-relaxed mb-1">상호: 온을 Stay | 대표: 김온을</p>
+            <p class="text-[13px] text-[#FAF7F2]/60 leading-relaxed mb-3">통신판매업 신고: 제2026-경주황남-0089호</p>
+            <p class="text-[13px] text-[#FAF7F2]/40">© 2026 Stay Onul. Crafted with ultimate solace. All rights reserved.</p>
+          </div>
+
+        </div>
+
+        <div class="mt-12 h-[1px] bg-[#FAF7F2]/10 pt-8 flex flex-col md:flex-row md:justify-between items-center text-[13px] text-[#FAF7F2]/40 gap-4">
+          <div class="flex gap-4">
+            <span class="hover:text-[#FAF7F2]/80 cursor-pointer">이용약관</span>
+            <span>|</span>
+            <span class="hover:text-[#FAF7F2]/80 cursor-pointer">개인정보 처리방침</span>
+            <span>|</span>
+            <span class="hover:text-[#FAF7F2]/80 cursor-pointer">환불규정서</span>
+          </div>
+          <div>자연스럽고 정갈한 킨포크 미학을 담았습니다. 모든 순간의 편안함.</div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- REDIRECTING LOADING SCREEN -->
+    <div x-show="isRedirecting"
+         x-transition:enter="transition duration-200"
+         x-transition:leave="transition duration-200"
+         class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md text-white px-6 text-center"
+         style="display: none;">
+      <div class="flex flex-col items-center gap-6 max-w-sm">
+        <div class="h-10 w-10 border-4 border-[#9E8D7A] border-t-transparent rounded-full animate-spin"></div>
+        <div class="space-y-2">
+          <p class="serif-font text-lg tracking-wide text-[#E6DCD0]" x-text="redirectingRoomName"></p>
+          <h3 class="serif-font text-xl font-light">외부 실시간 예약 채널로 연결하는 중</h3>
+          <p class="text-[13px] text-[#9E8D7A] font-light leading-relaxed pt-2">
+            안전하고 정밀한 예약을 위해 지정된 외부 공식 부킹 스케줄러로 즉시 연결하는 상태를 재현 중입니다. 잠시만 기다려 주십시오.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROOM DETAILS MODAL WITH IMAGE SLIDER (나노바나나) -->
+    <div x-show="activeModalRoom !== null" 
+         x-transition
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+         style="display: none;"
+         @click="activeModalRoom = null">
+      
+      <div @click.stopPropagation()
+           class="relative w-full max-w-4xl overflow-hidden rounded-[2px] bg-[#FAF7F2] text-[#2C2621] shadow-2xl border-none max-h-[90vh] md:max-h-[85vh] flex flex-col">
+        
+        <!-- Close Button -->
+        <button @click="activeModalRoom = null" class="absolute top-4 right-4 z-20 rounded-full bg-black/40 p-2 text-white hover:bg-black/60 transition-colors duration-200 cursor-pointer border-none">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <template x-if="getSelectedRoomObject() !== null">
+          <div class="grid grid-cols-1 md:grid-cols-12 md:h-full overflow-y-auto md:overflow-hidden">
+            
+            <!-- Left image slider column -->
+            <div class="md:col-span-6 h-64 md:h-[650px] relative overflow-hidden bg-black select-none">
+              <!-- Carousel Image -->
+              <img :src="getSelectedRoomObject().images[currentImgIndex]" 
+                   :alt="getSelectedRoomObject().title + ' 이미지'" 
+                   class="h-full w-full object-cover transition-all duration-500">
+              <div class="absolute inset-0 bg-gradient-to-t from-[#2C2621]/50 to-transparent"></div>
+              
+              <!-- Left and Right Arrows -->
+              <button @click="prevSlide()" class="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center transition-all cursor-pointer border-none">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button @click="nextSlide()" class="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center transition-all cursor-pointer border-none">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              <!-- Image count label (나노바나나) -->
+              <div class="absolute bottom-6 right-6 bg-black/60 text-[#FAF7F2] text-[13px] px-3.5 py-1.5 rounded-full font-mono font-light tracking-widest">
+                <span x-text="(currentImgIndex + 1)"></span> / <span x-text="getSelectedRoomObject().images.length"></span>
+              </div>
+
+              <!-- Dots indicator (나노바나나) -->
+              <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                <template x-for="(_, idx) in getSelectedRoomObject().images" :key="idx">
+                  <button @click="currentImgIndex = idx"
+                          :class="idx === currentImgIndex ? 'bg-white scale-110 px-2' : 'bg-white/40 hover:bg-white/70'"
+                          class="h-2.5 w-2.5 rounded-full transition-all cursor-pointer border-none">
+                  </button>
+                </template>
+              </div>
+
+              <div class="absolute top-6 left-6 text-[#FAF7F2]">
+                <span class="text-[13px] tracking-widest font-serif block uppercase text-[#E6DCD0] mb-1" x-text="getSelectedRoomObject().theme"></span>
+              </div>
+            </div>
+
+            <!-- Right details column -->
+            <div class="md:col-span-6 p-6 md:p-8 flex flex-col justify-between gap-6 h-auto md:h-[650px] overflow-y-auto custom-scrollbar">
+              <div class="space-y-4">
+                <div class="flex items-baseline justify-between border-b border-[#E6DCD0] pb-3.5">
+                  <h3 class="serif-font text-xl font-normal text-[#2C2621]" x-text="getSelectedRoomObject().title + ' (' + getSelectedRoomObject().subTitle + ')'"></h3>
+                  <span class="text-[13px] font-light text-[#9E8D7A] font-serif" x-text="getSelectedRoomObject().capacity"></span>
+                </div>
+
+                <div class="space-y-3.5">
+                  <p class="text-[13.5px] leading-relaxed text-[#2C2621] font-medium tracking-wide" x-text="getSelectedRoomObject().description"></p>
+                  
+                  <!-- Key features -->
+                  <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1 py-1.5 border-y border-[#E6DCD0]/40 select-none text-[13px] text-[#9A8977] font-light">
+                    <template x-for="(feat, idx) in getSelectedRoomObject().features">
+                      <div class="flex items-center gap-1.5">
+                        <span x-show="idx > 0" class="text-[#E6DCD0] select-none text-[13px]">•</span>
+                        <span class="tracking-wide" x-text="feat"></span>
+                      </div>
+                    </template>
+                  </div>
+
+                  <p class="text-[13px] leading-relaxed text-[#5F5449] font-light" x-text="getSelectedRoomObject().longDescription"></p>
+                </div>
+
+                <!-- Amenities block -->
+                <div>
+                  <h4 class="font-serif text-[13px] uppercase tracking-wider text-[#9E8D7A] font-semibold mb-2">지정 공간 비치 비품 (Amenities)</h4>
+                  <div class="grid grid-cols-2 gap-2 text-[13px] bg-[#F3ECE1] p-3.5 rounded-xs text-[#3F3730] leading-relaxed font-light">
+                    <template x-for="item in getSelectedRoomObject().amenities">
+                      <div class="flex items-center gap-1">
+                        <span class="text-[#9E8D7A]">•</span>
+                        <span x-text="item"></span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Booking integration in modal -->
+              <div class="pt-4 border-t border-[#E6DCD0]/60 space-y-3">
+                <div class="flex items-center justify-between text-[13px]">
+                  <span class="text-[#9E8D7A] font-light">하루 숙박 이용 기준가</span>
+                  <strong class="text-base text-[#2C2621] font-serif font-bold" x-text="formatKRW(getSelectedRoomObject().price)"></strong>
+                </div>
+                
+                <button @click="activeModalRoom = null; handleBookingRedirect(getSelectedRoomObject().title)"
+                        class="w-full bg-[#2C2621] hover:bg-[#3F3730] text-white py-3.5 rounded-xs text-[13px] tracking-widest font-semibold uppercase flex items-center justify-center gap-2 transition-colors cursor-pointer border-none">
+                  <span>온을 공식 예약센터로 연결하기</span>
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Alpine.js script containing the interactive logic and scoped data model -->
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('onulWidgetInstance', () => ({
+        // Interface navigation configurations
+        isMobileMenuOpen: false,
+        scrollY: 0,
+        activePolicyTab: 'reservation',
+
+        // Dialog modals states
+        activeModalRoom: null,
+        currentImgIndex: 0,
+        toastMessage: null,
+
+        // Redirect simulation state variables
+        isRedirecting: false,
+        redirectingRoomName: '',
+
+        // Comprehensive rooms definitions including similar generated images
+        roomsData: [
+          {
+            id: 'on',
+            title: '온 (溫)',
+            subTitle: '온전한 쉼의 침실',
+            capacity: '정원 2인',
+            price: 280000,
+            image: '/src/assets/images/stay_bedroom_1781373873321.jpg',
+            images: [
+              '/src/assets/images/stay_bedroom_1781373873321.jpg',
+              'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=800&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1505691938895-1758d7feb511?q=80&w=800&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1540518614846-7eded433c457?q=80&w=800&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800&auto=format&fit=crop'
+            ],
+            theme: 'Bedroom Theme',
+            description: '유기농 워싱 린넨 침구와 고요한 오크 원목 가구가 매칭된 침실입니다. 머리맡으로 부드럽게 들이치는 새벽빛과 자연 바람이 영혼의 평온을 돌려줍니다.',
+            longDescription: '수억 겹의 자극적인 도시 소음에서 벗어나 퓨어 코튼 린넨과 부드러운 오크재 가구로 미니멀하게 설계된 무소음 침실입니다. 빔 프로젝트를 천장에 매핑하여 누운 상태로 잔잔한 영화나 고전을 감상할 수 있으며, 하이엔드 무선 수신 오디오가 구비되어 감각적인 평온을 누릴 수 있습니다.',
+            amenities: ['킹사이즈 오가닉 베드', '마샬 워번 스피커', '천장 고화질 시네빔', '이솝 바디 어메니티 키트'],
+            features: ['오가닉 베딩', '시네빔 스크린', '마샬 스피커']
+          },
+          {
+            id: 'eul',
+            title: '을 (乙)',
+            subTitle: '바람이 머무는 다실',
+            capacity: '정원 2인',
+            price: 240000,
+            image: '/src/assets/images/stay_tea_room_1781373886604.jpg',
+            images: [
+              '/src/assets/images/stay_tea_room_1781373886604.jpg',
+              'https://images.unsplash.com/photo-1576092768241-dec231879fc3?q=80&w=800&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?q=80&w=800&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=800&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=800&auto=format&fit=crop'
+            ],
+            theme: 'Tea Room Theme',
+            description: '수제 도자기 다기와 최고급 로컬 차엽이 세팅된 다도 전용 스튜디오입니다. 와이드 창 너머 향긋한 대나무 정원을 바라보며 맑은 차엽의 향을 음미하세요.',
+            longDescription: '한옥의 아늑한 비례감을 현대적으로 재해석하여 마음을 모으는 다도 전용 공간입니다. 야외에는 사계절 내내 푸른 대나무 군락과 자연 정원석이 자리하고 있어, 전통 티웨어 도구로 차를 음미하며 느린 호흡과 평화를 경험할 수 있습니다.',
+            amenities: ['우롱/호지 명인 다기 세트', '대나무 정원 풍경 조망', '싱잉볼 & 명상 가이드', '핸드드립 브루잉 바'],
+            features: ['차 도구 세트', '대나무 정원 조망', '명상 악세서리']
+          },
+          {
+            id: 'ahn',
+            title: '안 (安)',
+            subTitle: '고요를 품은 온욕실',
+            capacity: '정원 2인',
+            price: 320000,
+            image: '/src/assets/images/stay_spa_room_1781374813579.jpg',
+            images: [
+              '/src/assets/images/stay_spa_room_1781374813579.jpg',
+              'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=800&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?q=80&w=800&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?q=80&w=800&auto=format&fit=crop'
+            ],
+            theme: 'Spa & Bath Theme',
+            description: '천연 화산석 욕조와 따스한 온수가 기다리는 힐링 온욕 존입니다. 안개처럼 차오르는 스팀 속에서 대나무 숲길의 정취와 함께 깊은 피로를 풀어보세요.',
+            longDescription: '거친 촉감의 화산석 욕조와 황톳빛 clay 벽이 자아내는 원초적인 고요 속에서 완전한 몰입의 반신욕을 즐기는 스파 온실입니다. 창을 열면 불어오는 가벼운 대나무 숲 바람과 수면 위로 차오르는 아로마 오일의 향이 일상의 피로를 한순간에 정화합니다.',
+            amenities: ['천연 화산석 스파 욕조', '허브 에센셜 스파 오일', '황토 바스 가운 & 타월', '편백 솔트 스크럽 세트'],
+            features: ['화산석 스파 욕조', '편백 솔트 스크럽', '아로마 웰컴 리추얼']
+          },
+          {
+            id: 'gyeol',
+            title: '결 (結)',
+            subTitle: '마음을 엮는 음악실',
+            capacity: '정원 2인',
+            price: 260000,
+            image: '/src/assets/images/stay_salon_room_1781374831930.jpg',
+            images: [
+              '/src/assets/images/stay_salon_room_1781374831930.jpg',
+              'https://images.unsplash.com/photo-1539628390353-30b9988b10d4?q=80&w=800&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1484755560695-a4c7477ab95b?q=80&w=800&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1506157786151-b8491531f063?q=80&w=800&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=800&auto=format&fit=crop'
+            ],
+            theme: 'Music Salon Theme',
+            description: '빈티지 턴테이블과 정성스레 큐레이션된 바이닐 컬렉션이 소장된 아날로그 오디오 프리미엄 청음 살롱 공간입니다. 시간의 결을 감상해 보세요.',
+            longDescription: '아날로그 바이닐 레코드 청음과 정적인 독서를 사랑하는 이들을 위한 감각 저장소입니다. 리빙룸 중앙에 마련된 편안한 로우 린넨 소파에 기대어, 디자이너 오디오 장비와 고유한 음반들이 직조해 내는 음악의 깊은 물결 속에서 사유의 흐름을 맡겨 봅니다.',
+            amenities: ['빈티지 고음질 턴테이블', '장르별 바이닐(LP) 30여종', '편안한 로우 린넨 소파', '독서 스탠드 & 도서 큐레이션'],
+            features: ['턴테이블 & LP 바이닐', '로우 린넨 소파', '독서 라이브러리']
+          }
+        ],
+
+        init() {
+          // Attach scroll listener
+          window.addEventListener('scroll', () => {
+            this.scrollY = window.scrollY;
+          });
+        },
+
+        // Open specific modal and reset slider index
+        openRoomModal(roomId) {
+          this.activeModalRoom = roomId;
+          this.currentImgIndex = 0;
+        },
+
+        // Next slide helper
+        nextSlide() {
+          const roomObj = this.getSelectedRoomObject();
+          if (roomObj) {
+            this.currentImgIndex = (this.currentImgIndex + 1) % roomObj.images.length;
+          }
+        },
+
+        // Previous slide helper
+        prevSlide() {
+          const roomObj = this.getSelectedRoomObject();
+          if (roomObj) {
+            this.currentImgIndex = (this.currentImgIndex === 0) ? roomObj.images.length - 1 : this.currentImgIndex - 1;
+          }
+        },
+
+        // Retrieve active room object
+        getSelectedRoomObject() {
+          if (this.activeModalRoom === null) return null;
+          return this.roomsData.find(room => room.id === this.activeModalRoom) || null;
+        },
+
+        // Trigger dynamic toast popup
+        triggerToast(message) {
+          this.toastMessage = message;
+          setTimeout(() => {
+            if (this.toastMessage === message) {
+              this.toastMessage = null;
+            }
+          }, 3500);
+        },
+
+        // Copy item to clipboard
+        handleCopy(text, label) {
+          navigator.clipboard.writeText(text).then(() => {
+            this.triggerToast(`${label}이(가) 클립보드에 조용히 저장되었습니다.`);
+          }).catch(() => {
+            this.triggerToast('클립보드 저장 도중 오류가 발생했습니다.');
+          });
+        },
+
+        // Simulate booking link redirect state
+        handleBookingRedirect(roomName) {
+          this.redirectingRoomName = roomName;
+          this.isRedirecting = true;
+          setTimeout(() => {
+            this.isRedirecting = false;
+            this.triggerToast(`${roomName} 외부 실시간 예약 사이트로 연결되었습니다. (가상 화면)`);
+          }, 2000);
+        },
+
+        // Print formatted KRW
+        formatKRW(value) {
+          return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value);
+        },
+
+        // General smooth scroll
+        scrollToSection(id) {
+          this.isMobileMenuOpen = false;
+          const target = document.getElementById(id);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      }));
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "Stay Onul",
+  "description": "머무는 것 자체로 위로가 되는 미니멀 감성 독채 스테이, 온을(Stay Onul)의 평온한 이야기와 공간 소개를 담은 랜딩 페이지입니다.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

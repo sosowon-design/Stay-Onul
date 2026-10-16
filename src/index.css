@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Lora:ital,wght@0,400;0,500;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@200;300;400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Cormorant Garamond", "Noto Serif KR", "Georgia", serif;
+  --font-sans: "Lora", "Noto Sans KR", sans-serif;
+  
+  --color-stay-cream: #FAF7F2;
+  --color-stay-beige: #F3ECE1;
+  --color-stay-sand: #E6DCD0;
+  --color-stay-brown: #9E8D7A;
+  --color-stay-charcoal: #2C2621;
+  --color-stay-soft-dark: #3F3730;
+}
+
+body {
+  background-color: var(--color-stay-cream);
+  color: var(--color-stay-charcoal);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* Hide scrollbar for Chrome, Safari, Opera, Edge, Firefox */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important; /* Firefox */
+}
+
+/* Refined Kinfolk & Hanok Aesthetic Minimal Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(158, 141, 122, 0.35);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 122, 104, 0.7);
+}
+
+/* Gentle natural breathing motion for all images (No hover required) */
+@keyframes naturalImageBreathe {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.06) translate3d(-0.6%, -0.5%, 0);
+  }
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes naturalImageBreatheAlt {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.055) translate3d(0.6%, -0.4%, 0);
+  }
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+.animate-natural-motion {
+  animation: naturalImageBreathe 12s ease-in-out infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.animate-natural-motion-alt {
+  animation: naturalImageBreatheAlt 15s ease-in-out infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.animate-natural-motion-slow {
+  animation: naturalImageBreathe 18s ease-in-out infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
